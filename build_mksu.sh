@@ -53,7 +53,7 @@ cd "$OLD_DIR"
 # Make AnyKernel3
 git clone https://github.com/Kernel-SU/AnyKernel3 --depth=1
 rm -rf ./AnyKernel3/.git
-cp out/dist/Image ./AnyKernel3/
+cp kernel_platform/out/msm-kernel-${CPUD}-gki/dist/Image ./AnyKernel3/
 
 ZIPNAME="Anykernel3-MKSU-SUSFS-${KSU_VERSION}-OnePlus_ACE_3_Pro.zip"
 cd ./AnyKernel3
