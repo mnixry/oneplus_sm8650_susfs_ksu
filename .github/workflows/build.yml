@@ -1,0 +1,69 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        manifest_file:
+          - oneplus12_u.xml
+          - oneplus12_v.xml
+          - oneplus_13r.xml
+          - oneplus_ace3_pro.xml
+          - oneplus_ace3_pro_v.xml
+          - oneplus_ace5.xml
+          - oneplus_pad2_v.xml
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@main
+
+      - uses: jlumbroso/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - uses: actions/setup-python@main
+        with:
+          python-version: "3.x"
+
+      - name: Install repo tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install repo
+          mkdir kernel_workspace
+
+      - name: Initialize repo and sync
+        working-directory: kernel_workspace
+        run: |
+          repo init \
+            -u https://github.com/OnePlusOSS/kernel_manifest.git \
+            -b refs/heads/oneplus/sm8650 \
+            -m ${{ matrix.manifest_file }} \
+            --depth=1 --repo-rev=v2.16
+          repo --trace sync -c -j$(nproc --all) --no-tags --fail-fast
+
+      - name: Build
+        working-directory: kernel_workspace
+        run: |
+          ./build_mksu.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@main
+        with:
+          name: kernel-${{ matrix.manifest_file }}
+          path: "*.zip"
