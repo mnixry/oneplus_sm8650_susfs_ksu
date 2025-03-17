@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -xve
 
 OLD_DIR=$(pwd)
@@ -58,6 +58,7 @@ git clone https://github.com/Kernel-SU/AnyKernel3 --depth=1
 rm -rf ./AnyKernel3/.git
 cp kernel_platform/out/msm-kernel-${CPUD}-gki/dist/Image ./AnyKernel3/
 
-ZIPNAME="Anykernel3-MKSU-SUSFS-${KSU_VERSION}-OnePlus_ACE_3_Pro.zip"
-cd ./AnyKernel3
-zip -r "../$ZIPNAME" ./*
+if [ -f "$GITHUB_OUTPUT" ]; then
+  kernel_full_ver=`strings AnyKernel3/Image | grep "Linux version" | awk '{print $3}' | head -n1`
+  echo 'kernel_version='${kernel_full_ver} >> $GITHUB_OUTPUT
+fi
