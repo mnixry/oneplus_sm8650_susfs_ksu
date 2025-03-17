@@ -14,13 +14,13 @@ jobs:
     strategy:
       matrix:
         manifest_file:
-          - oneplus12_u.xml
-          - oneplus12_v.xml
-          - oneplus_13r.xml
-          - oneplus_ace3_pro.xml
-          - oneplus_ace3_pro_v.xml
-          - oneplus_ace5.xml
-          - oneplus_pad2_v.xml
+          - oneplus12_u
+          - oneplus12_v
+          - oneplus_13r
+          - oneplus_ace3_pro
+          - oneplus_ace3_pro_v
+          - oneplus_ace5
+          - oneplus_pad2_v
       fail-fast: false
 
     steps:
@@ -51,7 +51,7 @@ jobs:
           repo init \
             -u https://github.com/OnePlusOSS/kernel_manifest.git \
             -b refs/heads/oneplus/sm8650 \
-            -m ${{ matrix.manifest_file }} \
+            -m ${{ matrix.manifest_file }}.xml \
             --depth=1 --repo-rev=v2.16
           repo --trace sync -c -j$(nproc --all) --no-tags --fail-fast
 
@@ -64,5 +64,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@main
         with:
-          name: AnyKernel3-MKSU-${{ steps.build.outputs.ksu_version }}-SUSFS-${{ matrix.manifest_file }}
+          name: "AnyKernel3-${{ steps.build.outputs.kernel_version }}\
+            -MKSU-${{ steps.build.outputs.ksu_version }}\
+            -SUSFS-${{ matrix.manifest_file }}"
           path: kernel_workspace/AnyKernel3
