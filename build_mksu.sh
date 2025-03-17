@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -xve
 
 OLD_DIR=$(pwd)
 ANDROID_VERSION="android14"
