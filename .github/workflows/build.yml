@@ -28,8 +28,6 @@ jobs:
 
       - uses: jlumbroso/free-disk-space@main
         with:
-          # this might remove tools that are actually needed,
-          # if set to "true" but frees about 6 GB
           tool-cache: false
 
       - name: Configure Git
@@ -59,11 +57,12 @@ jobs:
 
       - name: Build
         working-directory: kernel_workspace
+        id: build
         run: |
           ../build_mksu.sh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@main
         with:
-          name: kernel-${{ matrix.manifest_file }}
-          path: "*.zip"
+          name: AnyKernel3-MKSU-${{ steps.build.outputs.ksu_version }}-SUSFS-${{ matrix.manifest_file }}
+          path: kernel_workspace/AnyKernel3
