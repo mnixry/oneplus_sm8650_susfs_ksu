@@ -19,6 +19,9 @@ cd KernelSU
 git revert -m 1 $(git log --grep="remove devpts hook" --pretty=format:"%H") -n
 KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
 sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
+if [ -f "$GITHUB_OUTPUT" ]; then
+  echo 'ksu_version='${KSU_VERSION} >> $GITHUB_OUTPUT
+fi
 
 # Set up susfs
 cd "$OLD_DIR"
