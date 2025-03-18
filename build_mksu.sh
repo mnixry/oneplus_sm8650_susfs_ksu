@@ -60,6 +60,4 @@ git clone https://github.com/Kernel-SU/AnyKernel3 --depth=1
 rm -rf ./AnyKernel3/.git
 cp "kernel_platform/out/msm-kernel-${CPUD}-gki/dist/Image" ./AnyKernel3/
 
-if [ -f "$GITHUB_OUTPUT" ]; then
-  write_github_output "kernel_version" $(strings ./AnyKernel3/Image | sed -n 's/.*Linux version \([^ ]*\).*/\1/p' | uniq)
-fi
+write_github_output "kernel_version" $(strings ./AnyKernel3/Image | sed -n 's/.*Linux version \([^ ]*\).*/\1/p' | uniq)

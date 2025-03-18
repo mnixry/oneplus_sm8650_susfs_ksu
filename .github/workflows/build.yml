@@ -53,13 +53,7 @@ jobs:
             -b refs/heads/oneplus/sm8650 \
             -m ${{ matrix.manifest_file }}.xml \
             --depth=1 --repo-rev=v2.16
-          repo --trace sync -c -j$(nproc --all) --no-tags --fail-fast
-
-      - uses: bazel-contrib/setup-bazel@main
-        with:
-          bazelisk-cache: true
-          disk-cache: ${{ github.workflow }}
-          repository-cache: true
+          repo --trace sync -c -j$(nproc) --no-tags --fail-fast
 
       - name: Build
         working-directory: kernel_workspace
@@ -75,3 +69,4 @@ jobs:
             -MKSU-${{ steps.build.outputs.ksu_version }}\
             -SUSFS-${{ steps.build.outputs.susfs_version }}"
           path: kernel_workspace/AnyKernel3
+          compression-level: 9
