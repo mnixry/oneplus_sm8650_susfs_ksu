@@ -28,7 +28,7 @@ jobs:
 
       - uses: jlumbroso/free-disk-space@main
         with:
-          tool-cache: false
+          tool-cache: true
 
       - name: Configure Git
         run: |
@@ -54,6 +54,12 @@ jobs:
             -m ${{ matrix.manifest_file }}.xml \
             --depth=1 --repo-rev=v2.16
           repo --trace sync -c -j$(nproc --all) --no-tags --fail-fast
+
+      - uses: bazel-contrib/setup-bazel@main
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
 
       - name: Build
         working-directory: kernel_workspace
