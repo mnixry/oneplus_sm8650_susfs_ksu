@@ -47,6 +47,8 @@ git clone https://github.com/TanakaLun/kernel_patches4mksu --depth 1
 (
   cd kernel_platform/common
   patch -p1 --forward < ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${ANDROID_VERSION}-${KERNEL_VERSION}.patch || true
+  patch -p1 --forward < ../../kernel_patches4mksu/oneplus/001-lz4.patch || true
+  patch -p1 --forward < ../../kernel_patches4mksu/oneplus/002-zstd.patch || true
   patch -p1 --forward < ../../kernel_patches4mksu/69_hide_stuff.patch
   cp -rv ../../susfs4ksu/kernel_patches/fs/* ./fs/
   cp -rv ../../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
