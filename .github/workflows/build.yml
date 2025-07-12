@@ -29,6 +29,10 @@ jobs:
           - ksu-susfs
       fail-fast: false
 
+    permissions:
+      id-token: write
+      attestations: write
+
     steps:
       - uses: actions/checkout@main
 
@@ -68,6 +72,10 @@ jobs:
           BUILD_TYPE: ${{ matrix.build_type }}
         run: |
           ../build_mksu.sh
+
+      - uses: actions/attest-build-provenance@main
+        with:
+          subject-path: kernel_workspace/AnyKernel3
 
       - name: Upload artifacts
         uses: actions/upload-artifact@main
