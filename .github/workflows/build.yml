@@ -23,6 +23,9 @@ jobs:
           - oneplus_ace3_pro_v
           - oneplus_ace5
           - oneplus_pad2_v
+        build_type:
+          - mksu
+          - ksu-susfs
       fail-fast: false
 
     steps:
@@ -60,15 +63,17 @@ jobs:
       - name: Build
         working-directory: kernel_workspace
         id: build
+        env:
+          BUILD_TYPE: ${{ matrix.build_type }}
         run: |
           ../build_mksu.sh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@main
         with:
-          name:
-            "AnyKernel3-${{ matrix.manifest_file }}-${{ steps.build.outputs.kernel_version }}\
-            -MKSU-${{ steps.build.outputs.ksu_version }}\
-            -SUSFS-${{ steps.build.outputs.susfs_version }}"
+          name: |
+            ${{ matrix.build_type == 'ksu-susfs' &&
+            format('AnyKernel3-{0}-{1}-KSU-{2}-SUSFS-{3}', matrix.manifest_file, steps.build.outputs.kernel_version, steps.build.outputs.ksu_version, steps.build.outputs.susfs_version) ||
+            format('AnyKernel3-{0}-{1}-MKSU-{2}', matrix.manifest_file, steps.build.outputs.kernel_version, steps.build.outputs.ksu_version) }}
           path: kernel_workspace/AnyKernel3
           compression-level: 9
