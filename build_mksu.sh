@@ -24,7 +24,10 @@ sed -i 's/ -dirty//g' kernel_platform/build/kernel/kleaf/workspace_status_stamp.
   curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/refs/heads/main/kernel/setup.sh" | bash -
   (
     cd KernelSU
-    git revert -m 1 $(git log --grep="remove devpts hook" --pretty=format:"%H") -n
+    git show $(git log --grep="remove devpts hook" --pretty=format:"%H") | patch -p1 -R
+    git show $(git log --grep="odm handling" --pretty=format:"%H") | patch -p1 -F 3 -R || true
+    # git revert -m 1 $(git log --grep="remove devpts hook" --pretty=format:"%H") -n
+    # git revert -m 1 $(git log --grep="odm handling" --pretty=format:"%H") -n
     ksu_version=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
     sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${ksu_version}/" kernel/Makefile
     write_github_output "ksu_version" "${ksu_version}"

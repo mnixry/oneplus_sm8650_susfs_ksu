@@ -1,0 +1,40 @@
+name: minecraft
+
+networks:
+  default:
+    enable_ipv6: true
+
+volumes:
+  zt_data:
+
+services:
+  app:
+    image: container-registry.oracle.com/graalvm/jdk:21
+    volumes:
+      - .:/app
+    user: 1000:1000
+    working_dir: /app
+    command: ["/bin/bash", "./startserver.sh"]
+    tty: true
+    stdin_open: true
+    environment:
+      LANG: zh_CN.UTF-8
+    ports:
+      - "25565:25565"
+    restart: unless-stopped
+    stop_signal: SIGINT
+    init: true
+
+  zt:
+    image: zerotier/zerotier:latest
+    network_mode: service:app
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    volumes:
+      - zt_data:/var/lib/zerotier-one
+    command: ["9e1948db63c11c3e"]
+    restart: unless-stopped
+    depends_on:
+      - app
