@@ -65,12 +65,16 @@ case "$BUILD_TYPE" in
 esac
 
 # Set up extra patches for OnePlus devices
-git clone https://github.com/TanakaLun/kernel_patches4mksu --depth 1
+git clone https://github.com/WildKernels/kernel_patches.git --depth 1
+(
+  cd kernel_patches
+  curl -LSs https://github.com/WildKernels/kernel_patches/pull/4.patch | git apply --ignore-whitespace --reject || true
+)
 (
   cd kernel_platform/common
-  patch -p1 --forward < ../../kernel_patches4mksu/oneplus/001-lz4.patch || true
-  patch -p1 --forward < ../../kernel_patches4mksu/oneplus/002-zstd.patch || true
-  patch -p1 --forward < ../../kernel_patches4mksu/69_hide_stuff.patch
+  patch -p1 --forward < ../../kernel_patches/oneplus/001-lz4.patch || true
+  patch -p1 --forward < ../../kernel_patches/oneplus/002-zstd.patch || true
+  patch -p1 --forward < ../../kernel_patches/69_hide_stuff.patch
 )
 
 # Build kernel
