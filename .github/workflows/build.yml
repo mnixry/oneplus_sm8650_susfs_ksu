@@ -16,8 +16,8 @@ jobs:
     strategy:
       matrix:
         manifest_file:
-          # - oneplus12_u
-          - oneplus12_v
+          # - oneplus_12_u
+          - oneplus_12_v
           - oneplus_13r
           - oneplus_ace3_pro
           - oneplus_ace3_pro_v
