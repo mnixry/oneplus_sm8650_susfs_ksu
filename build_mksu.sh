@@ -23,7 +23,7 @@ function setup_kernelsu() {
     bash <(curl -LSs "https://github.com/${ksu_repo}/raw/refs/heads/${ksu_branch}/${script_path}")
     (
       cd KernelSU
-      ksu_version=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
+      ksu_version=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 20000)
       sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${ksu_version}/" kernel/Makefile
       write_github_output "ksu_version" "${ksu_version}"
     )
