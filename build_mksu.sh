@@ -17,13 +17,13 @@ function write_github_output() {
 function setup_kernelsu() {
   local ksu_repo=${1:-"tiann/KernelSU"}
   local ksu_branch=${2:-"main"}
-  local script_path=${3:-"kernel/setup.sh"}
   (
     cd kernel_platform
-    bash <(curl -LSs "https://github.com/${ksu_repo}/raw/refs/heads/${ksu_branch}/${script_path}")
+    git clone https://github.com/${ksu_repo}.git ./KernelSU
+    ./KernelSU/kernel/setup.sh "${ksu_branch}"
     (
       cd KernelSU
-      ksu_version=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 20000)
+      ksu_version=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 30000)
       sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${ksu_version}/" kernel/Makefile
       write_github_output "ksu_version" "${ksu_version}"
     )
