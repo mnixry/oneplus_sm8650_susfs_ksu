@@ -96,7 +96,7 @@ jobs:
             matrix.build_type == 'ksu-susfs' &&
               format('AnyKernel3-{0}-{1}-KSU-{2}-SUSFS-{3}', matrix.manifest_file, steps.build.outputs.kernel_version, steps.build.outputs.ksu_version, steps.build.outputs.susfs_version) ||
             matrix.build_type == 'sukisu' &&
-              format('AnyKernel3-{0}-{1}-SukiSU-{2}', matrix.manifest_file, steps.build.outputs.kernel_version, steps.build.outputs.sukisu_version) ||
+              format('AnyKernel3-{0}-{1}-SukiSU-{2}', matrix.manifest_file, steps.build.outputs.kernel_version, steps.build.outputs.ksu_version) ||
             format('AnyKernel3-{0}-{1}-MKSU-{2}', matrix.manifest_file, steps.build.outputs.kernel_version, steps.build.outputs.ksu_version)
             }}
           path: kernel_workspace/AnyKernel3

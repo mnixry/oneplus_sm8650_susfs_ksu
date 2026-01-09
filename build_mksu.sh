@@ -18,13 +18,14 @@ function setup_kernelsu() {
   local ksu_repo=${1:-"tiann/KernelSU"}
   local ksu_branch=${2:-"main"}
   local version_offset=${3:-30000}
+  local version_branch=${4:-"HEAD"}
   (
     cd kernel_platform
     git clone https://github.com/${ksu_repo}.git ./KernelSU
     ./KernelSU/kernel/setup.sh "${ksu_branch}"
     (
       cd KernelSU
-      ksu_version=$(expr $(/usr/bin/git rev-list --count HEAD) "+" ${version_offset})
+      ksu_version=$(expr $(/usr/bin/git rev-list --count "${version_branch}") "+" ${version_offset})
       sed -i "s/DKSU_VERSION=[^[:space:]]\+/DKSU_VERSION=${ksu_version}/" kernel/Kbuild
       grep "KSU_VERSION=${ksu_version}" kernel/Kbuild
       write_github_output "ksu_version" "${ksu_version}"
@@ -61,7 +62,7 @@ case "$BUILD_TYPE" in
     setup_kernelsu "5ec1cff/KernelSU"
     ;;
   "sukisu")
-    setup_kernelsu "SukiSU-Ultra/SukiSU-Ultra" builtin 37185 # 40000 - 2815
+    setup_kernelsu "SukiSU-Ultra/SukiSU-Ultra" builtin 37185 main # 40000 - 2815
     ;;
   *)
     echo "Unknown BUILD_TYPE: ${BUILD_TYPE}"
