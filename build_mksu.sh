@@ -6,12 +6,26 @@ ANDROID_VERSION=${ANDROID_VERSION:-"android14"}
 KERNEL_VERSION=${KERNEL_VERSION:-"6.1"}
 CPUD=${CPUD:-"pineapple"}
 
+if [ ! -f "kernel_platform/common/Makefile" ]; then
+  echo "Kernel source not found!"
+  exit 1
+fi
+
 function write_github_output() {
   local key=$1
   local value=$2
   if [ -f "$GITHUB_OUTPUT" ]; then
     echo "${key}=${value}" >> $GITHUB_OUTPUT
   fi
+}
+
+function write_gki_config() {
+  (
+    cd kernel_platform/common
+    for config in $@; do
+      echo "CONFIG_${config}" >> ./arch/arm64/configs/gki_defconfig
+    done
+  )
 }
 
 function setup_kernelsu() {
@@ -31,21 +45,40 @@ function setup_kernelsu() {
       write_github_output "ksu_version" "${ksu_version}"
     )
   )
+  write_gki_config KSU=y
 }
 
 function setup_susfs() {
+  local patch_ksu=${1:-"yes"}
   git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${ANDROID_VERSION}-${KERNEL_VERSION} --depth 1
   write_github_output "susfs_version" $(cat susfs4ksu/ksu_module_susfs/module.prop | sed -n '/version=/ {s/.*=//; p}')
+  if [ "${patch_ksu}" == "yes" ]; then
   (
-    cd kernel_platform/KernelSU
-    patch -p1 --forward < ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch || true
-  )
+      cd kernel_platform/KernelSU
+      patch -p1 --forward < ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch || true
+    )
+  fi
   (
     cd kernel_platform/common
     patch -p1 --forward < ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${ANDROID_VERSION}-${KERNEL_VERSION}.patch || true
     cp -rv ../../susfs4ksu/kernel_patches/fs/* ./fs/
     cp -rv ../../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
   )
+  write_gki_config \
+    KSU_SUSFS=y \
+    KSU_SUSFS_SUS_SU=n \
+    KSU_SUSFS_SUS_MAP=y \
+    KSU_SUSFS_SUS_PATH=y \
+    KSU_SUSFS_SUS_MOUNT=y \
+    KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y \
+    KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y \
+    KSU_SUSFS_SUS_KSTAT=y \
+    KSU_SUSFS_TRY_UMOUNT=y \
+    KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y \
+    KSU_SUSFS_SPOOF_UNAME=y \
+    KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y \
+    KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y \
+    KSU_SUSFS_OPEN_REDIRECT=y
 }
 
 # Initialize repo and sync
@@ -63,6 +96,7 @@ case "$BUILD_TYPE" in
     ;;
   "sukisu")
     setup_kernelsu "SukiSU-Ultra/SukiSU-Ultra" builtin 37185 main # 40000 - 2815
+    setup_susfs "no"
     ;;
   *)
     echo "Unknown BUILD_TYPE: ${BUILD_TYPE}"
@@ -82,6 +116,11 @@ git clone https://github.com/WildKernels/kernel_patches.git --depth 1
   patch -p1 --forward < ../../kernel_patches/oneplus/002-zstd.patch || true
   patch -p1 --forward < ../../kernel_patches/69_hide_stuff.patch
 )
+
+# Add BBR Config
+write_gki_config TCP_CONG_ADVANCED=y TCP_CONG_BBR=y NET_SCH_FQ=y
+# Remove check_defconfig
+sed -i 's/check_defconfig//' ./kernel_platform/common/build.config.gki
 
 # Build kernel
 ./kernel_platform/build_with_bazel.py -t "${CPUD}" gki
