@@ -20,6 +20,13 @@ jobs:
 
     strategy:
       matrix:
+        variant:
+          - { name: sukisu, temp_name: SukiSU }
+          - { name: mksu, temp_name: MKSU }
+          - { name: ksu, temp_name: KSU }
+        susfs:
+          - "yes"
+          - "no"
         manifest_file:
           # - oneplus_12_u
           - oneplus_12_v
@@ -35,14 +42,8 @@ jobs:
           - oneplus_pad2_b
           - oneplus_pad_pro_v
           - oneplus_pad_pro_b
-        variant:
-          - { name: ksu, temp_name: KSU }
-          - { name: mksu, temp_name: MKSU }
-          - { name: sukisu, temp_name: SukiSU }
-        susfs:
-          - "yes"
-          - "no"
       fail-fast: false
+      max-parallel: 13
 
     permissions:
       id-token: write
