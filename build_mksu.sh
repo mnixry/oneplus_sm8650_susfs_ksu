@@ -57,12 +57,14 @@ function setup_susfs() {
   if [ "${patch_ksu}" == "yes" ]; then
     (
       cd kernel_platform/KernelSU
-      patch -p1 --fuzz=3 < ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch || true
+      patch -p1 --fuzz=3 < ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch || \
+        echo "::warning:: SuSFS patch for KernelSU failed to apply, continue..."
     )
   fi
   (
     cd kernel_platform/common
-    patch -p1 --fuzz=3 < ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${ANDROID_VERSION}-${KERNEL_VERSION}.patch || true
+    patch -p1 --fuzz=3 < ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${ANDROID_VERSION}-${KERNEL_VERSION}.patch || \
+      echo "::warning:: SuSFS patch for GKI failed to apply, continue..."
     cp -rv ../../susfs4ksu/kernel_patches/fs/* ./fs/
     cp -rv ../../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
   )
@@ -116,12 +118,15 @@ fi
 git clone https://github.com/WildKernels/kernel_patches.git --depth 1
 (
   cd kernel_patches
-  curl -LSs https://github.com/WildKernels/kernel_patches/pull/4.patch | git apply --ignore-whitespace --reject || true
+  curl -LSs https://github.com/WildKernels/kernel_patches/pull/4.patch | git apply --ignore-whitespace --reject || \
+    echo "::warning:: WildKernels PR#4 patch failed to apply, continue..."
 )
 (
   cd kernel_platform/common
-  patch -p1 --forward < ../../kernel_patches/oneplus/001-lz4.patch || true
-  patch -p1 --forward < ../../kernel_patches/oneplus/002-zstd.patch || true
+  patch -p1 --forward < ../../kernel_patches/oneplus/001-lz4.patch || \
+    echo "::warning:: LZ4 patch failed to apply, continue..."
+  patch -p1 --forward < ../../kernel_patches/oneplus/002-zstd.patch || \
+    echo "::warning:: ZSTD patch failed to apply, continue..."
   patch -p1 --forward < ../../kernel_patches/69_hide_stuff.patch
 )
 
