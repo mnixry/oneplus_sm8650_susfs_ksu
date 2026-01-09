@@ -118,7 +118,7 @@ git clone https://github.com/WildKernels/kernel_patches.git --depth 1
 )
 
 # Add BBR Config
-write_gki_config TCP_CONG_ADVANCED=y TCP_CONG_BBR=y NET_SCH_FQ=y
+write_gki_config TCP_CONG_ADVANCED=y TCP_CONG_BBR=y NET_SCH_FQ=y TCP_CONG_BIC=n TCP_CONG_WESTWOOD=n TCP_CONG_HTCP=n
 # Remove check_defconfig
 sed -i 's/check_defconfig//' ./kernel_platform/common/build.config.gki
 
