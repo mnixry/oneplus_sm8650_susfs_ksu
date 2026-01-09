@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -xve
 
-BUILD_TYPE=${BUILD_TYPE:-"ksu-susfs"}
+KSU_VARIANT=${KSU_VARIANT:-"ksu"}
+ENABLE_SUSFS=${ENABLE_SUSFS:-"yes"}
+
 ANDROID_VERSION=${ANDROID_VERSION:-"android14"}
 KERNEL_VERSION=${KERNEL_VERSION:-"6.1"}
 CPUD=${CPUD:-"pineapple"}
@@ -53,14 +55,14 @@ function setup_susfs() {
   git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${ANDROID_VERSION}-${KERNEL_VERSION} --depth 1
   write_github_output "susfs_version" $(cat susfs4ksu/ksu_module_susfs/module.prop | sed -n '/version=/ {s/.*=//; p}')
   if [ "${patch_ksu}" == "yes" ]; then
-  (
+    (
       cd kernel_platform/KernelSU
-      patch -p1 --forward < ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch || true
+      patch -p1 --fuzz=3 < ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch || true
     )
   fi
   (
     cd kernel_platform/common
-    patch -p1 --forward < ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${ANDROID_VERSION}-${KERNEL_VERSION}.patch || true
+    patch -p1 --fuzz=3 < ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${ANDROID_VERSION}-${KERNEL_VERSION}.patch || true
     cp -rv ../../susfs4ksu/kernel_patches/fs/* ./fs/
     cp -rv ../../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
   )
@@ -86,23 +88,29 @@ rm -vf kernel_platform/common/android/abi_gki_protected_exports_* || echo "No pr
 rm -vf kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
 sed -i 's/ -dirty//g' kernel_platform/build/kernel/kleaf/workspace_status_stamp.py
 
-case "$BUILD_TYPE" in
-  "ksu-susfs")
+case "$KSU_VARIANT" in
+  "ksu")
     setup_kernelsu "tiann/KernelSU"
-    setup_susfs
     ;;
   "mksu")
     setup_kernelsu "5ec1cff/KernelSU"
     ;;
   "sukisu")
     setup_kernelsu "SukiSU-Ultra/SukiSU-Ultra" builtin 37185 main # 40000 - 2815
-    setup_susfs "no"
     ;;
   *)
-    echo "Unknown BUILD_TYPE: ${BUILD_TYPE}"
+    echo "Unknown KSU_VARIANT: ${KSU_VARIANT}"
     exit 1
     ;;
 esac
+
+if [ "${ENABLE_SUSFS}" == "yes" ]; then
+  if [ "${KSU_VARIANT}" == "sukisu" ]; then
+    setup_susfs "no"
+  else
+    setup_susfs
+  fi
+fi
 
 # Set up extra patches for OnePlus devices
 git clone https://github.com/WildKernels/kernel_patches.git --depth 1
@@ -126,8 +134,7 @@ sed -i 's/check_defconfig//' ./kernel_platform/common/build.config.gki
 ./kernel_platform/build_with_bazel.py -t "${CPUD}" gki
 
 # Make AnyKernel3
-git clone https://github.com/Kernel-SU/AnyKernel3 --depth=1
-rm -rf ./AnyKernel3/.git
-cp "kernel_platform/out/msm-kernel-${CPUD}-gki/dist/Image" ./AnyKernel3/
-
+mkdir -p AnyKernel3
+curl -LSs https://github.com/Kernel-SU/AnyKernel3/archive/refs/heads/master.tar.gz | tar -zxvC AnyKernel3 --strip-components=1
+cp "kernel_platform/out/msm-kernel-${CPUD}-gki/dist/Image" ./AnyKernel3/Image
 write_github_output "kernel_version" $(strings ./AnyKernel3/Image | sed -n 's/.*Linux version \([^ ]*\).*/\1/p' | uniq)

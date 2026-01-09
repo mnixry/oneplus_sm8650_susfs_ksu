@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   build:
+    name: Build for ${{ matrix.manifest_file }} (${{ matrix.variant.temp_name }}, susfs=${{ matrix.susfs }})
     runs-on: ubuntu-latest
 
     strategy:
@@ -34,10 +35,13 @@ jobs:
           - oneplus_pad2_b
           - oneplus_pad_pro_v
           - oneplus_pad_pro_b
-        build_type:
-          - mksu
-          - ksu-susfs
-          - sukisu
+        variant:
+          - { name: ksu, temp_name: KSU }
+          - { name: mksu, temp_name: MKSU }
+          - { name: sukisu, temp_name: SukiSU }
+        susfs:
+          - "yes"
+          - "no"
       fail-fast: false
 
     permissions:
@@ -80,7 +84,8 @@ jobs:
         working-directory: kernel_workspace
         id: build
         env:
-          BUILD_TYPE: ${{ matrix.build_type }}
+          KSU_VARIANT: ${{ matrix.variant.name }}
+          ENABLE_SUSFS: ${{ matrix.susfs }}
         run: |
           ../build_mksu.sh
 
@@ -93,11 +98,10 @@ jobs:
         with:
           name: |
             ${{
-            matrix.build_type == 'ksu-susfs' &&
-              format('AnyKernel3-{0}-{1}-KSU-{2}-SUSFS-{3}', matrix.manifest_file, steps.build.outputs.kernel_version, steps.build.outputs.ksu_version, steps.build.outputs.susfs_version) ||
-            matrix.build_type == 'sukisu' &&
-              format('AnyKernel3-{0}-{1}-SukiSU-{2}', matrix.manifest_file, steps.build.outputs.kernel_version, steps.build.outputs.ksu_version) ||
-            format('AnyKernel3-{0}-{1}-MKSU-{2}', matrix.manifest_file, steps.build.outputs.kernel_version, steps.build.outputs.ksu_version)
+              matrix.susfs == 'yes' &&
+                format('AnyKernel3-{0}-{1}-{2}-{3}-SUSFS-{4}', matrix.manifest_file, steps.build.outputs.kernel_version, matrix.variant.temp_name, steps.build.outputs.ksu_version, steps.build.outputs.susfs_version) ||
+              matrix.susfs == 'no' &&
+                format('AnyKernel3-{0}-{1}-{2}-{3}', matrix.manifest_file, steps.build.outputs.kernel_version, matrix.variant.temp_name, steps.build.outputs.ksu_version)
             }}
           path: kernel_workspace/AnyKernel3
           compression-level: 9
