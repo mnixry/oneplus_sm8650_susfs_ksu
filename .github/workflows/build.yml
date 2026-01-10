@@ -17,7 +17,6 @@ jobs:
   build:
     name: Build for ${{ matrix.manifest_file }} (${{ matrix.variant.temp_name }}, susfs=${{ matrix.susfs }})
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         variant:
@@ -44,33 +43,26 @@ jobs:
           - oneplus_pad_pro_b
       fail-fast: false
       max-parallel: 13
-
     permissions:
       id-token: write
       attestations: write
-
     steps:
       - uses: actions/checkout@main
-
       - uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true
-
       - name: Configure Git
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
       - uses: actions/setup-python@main
         with:
           python-version: "3.x"
-
       - name: Install repo tool
         run: |
           sudo apt-get update
           sudo apt-get install repo
           mkdir kernel_workspace
-
       - name: Initialize repo and sync
         working-directory: kernel_workspace
         run: |
@@ -80,7 +72,14 @@ jobs:
             -m ${{ matrix.manifest_file }}.xml \
             --depth=1 --repo-rev=v2.16
           repo --trace sync -c -j$(nproc) --no-tags --fail-fast
-
+      - uses: actions/cache@main
+        with:
+          path: ~/.cache/bazel
+          key: bazel-cache-${{ matrix.manifest_file }}-${{ matrix.variant.name }}-${{ matrix.susfs }}-${{ job.check_run_id }}
+          restore-keys: |
+            bazel-cache-${{ matrix.manifest_file }}-${{ matrix.variant.name }}-${{ matrix.susfs }}-
+            bazel-cache-${{ matrix.manifest_file }}-${{ matrix.variant.name }}-
+            bazel-cache-${{ matrix.manifest_file }}-
       - name: Build
         working-directory: kernel_workspace
         id: build
@@ -88,12 +87,13 @@ jobs:
           KSU_VARIANT: ${{ matrix.variant.name }}
           ENABLE_SUSFS: ${{ matrix.susfs }}
         run: |
+          mkdir -p ~/.cache/bazel
+          echo "build --disk_cache=$(realpath ~/.cache/bazel)" >> ~/.bazelrc
           ../build_mksu.sh
 
       - uses: actions/attest-build-provenance@main
         with:
           subject-path: kernel_workspace/AnyKernel3
-
       - name: Upload artifacts
         uses: actions/upload-artifact@main
         with:
