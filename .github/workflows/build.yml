@@ -1,5 +1,4 @@
 name: Build
-
 on:
   push:
     branches:
@@ -8,11 +7,9 @@ on:
     - cron: "0 12 * * *"
   pull_request:
   workflow_dispatch:
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   build:
     name: Build for ${{ matrix.manifest_file }} (${{ matrix.variant.temp_name }}, susfs=${{ matrix.susfs }})
@@ -20,9 +17,9 @@ jobs:
     strategy:
       matrix:
         variant:
-          - { name: sukisu, temp_name: SukiSU }
-          - { name: mksu, temp_name: MKSU }
-          - { name: ksu, temp_name: KSU }
+          - {name: sukisu, temp_name: SukiSU}
+          - {name: mksu, temp_name: MKSU}
+          - {name: ksu, temp_name: KSU}
         susfs:
           - "yes"
           - "no"
@@ -88,9 +85,7 @@ jobs:
           ENABLE_SUSFS: ${{ matrix.susfs }}
         run: |
           mkdir -p ~/.cache/bazel
-          echo "build --disk_cache=$(realpath ~/.cache/bazel)" >> ~/.bazelrc
-          ../build_mksu.sh
-
+          EXTRA_BUILD_ARGS="--config=local --cache_dir=$(realpath ~/.cache/bazel)" ../build_mksu.sh
       - uses: actions/attest-build-provenance@main
         with:
           subject-path: kernel_workspace/AnyKernel3

@@ -3,6 +3,7 @@ set -xve
 
 KSU_VARIANT=${KSU_VARIANT:-"ksu"}
 ENABLE_SUSFS=${ENABLE_SUSFS:-"yes"}
+EXTRA_BUILD_ARGS=${EXTRA_BUILD_ARGS:-""}
 
 ANDROID_VERSION=${ANDROID_VERSION:-"android14"}
 KERNEL_VERSION=${KERNEL_VERSION:-"6.1"}
@@ -136,7 +137,7 @@ write_gki_config TCP_CONG_ADVANCED=y TCP_CONG_BBR=y NET_SCH_FQ=y TCP_CONG_BIC=n 
 sed -i 's/check_defconfig//' ./kernel_platform/common/build.config.gki
 
 # Build kernel
-./kernel_platform/build_with_bazel.py -t "${CPUD}" gki
+./kernel_platform/build_with_bazel.py -t "${CPUD}" gki ${EXTRA_BUILD_ARGS}
 
 # Make AnyKernel3
 mkdir -p AnyKernel3
