@@ -36,6 +36,7 @@ function setup_kernelsu() {
   local ksu_branch=${2:-"main"}
   local version_offset=${3:-30000}
   local version_branch=${4:-"HEAD"}
+  local build_script=${5:-"kernel/Kbuild"}
   (
     cd kernel_platform
     git clone https://github.com/${ksu_repo}.git ./KernelSU
@@ -43,8 +44,8 @@ function setup_kernelsu() {
     (
       cd KernelSU
       ksu_version=$(expr $(/usr/bin/git rev-list --count "${version_branch}") "+" ${version_offset})
-      sed -i "s/DKSU_VERSION=[^[:space:]]\+/DKSU_VERSION=${ksu_version}/" kernel/Kbuild
-      grep "KSU_VERSION=${ksu_version}" kernel/Kbuild
+      sed -i "s/DKSU_VERSION=[^[:space:]]\+/DKSU_VERSION=${ksu_version}/" "${build_script}"
+      grep "KSU_VERSION=${ksu_version}" "${build_script}"
       write_github_output "ksu_version" "${ksu_version}"
     )
   )
@@ -99,7 +100,7 @@ case "$KSU_VARIANT" in
     setup_kernelsu "5ec1cff/KernelSU"
     ;;
   "sukisu")
-    setup_kernelsu "SukiSU-Ultra/SukiSU-Ultra" builtin 37185 main # 40000 - 2815
+    setup_kernelsu "SukiSU-Ultra/SukiSU-Ultra" builtin 37185 main kernel/Makefile # 40000 - 2815
     ;;
   *)
     echo "Unknown KSU_VARIANT: ${KSU_VARIANT}"
@@ -128,7 +129,6 @@ git clone https://github.com/WildKernels/kernel_patches.git --depth 1
     echo "::warning:: LZ4 patch failed to apply, continue..."
   patch -p1 --forward < ../../kernel_patches/oneplus/002-zstd.patch || \
     echo "::warning:: ZSTD patch failed to apply, continue..."
-  patch -p1 --forward < ../../kernel_patches/69_hide_stuff.patch
 )
 
 # Add BBR Config
